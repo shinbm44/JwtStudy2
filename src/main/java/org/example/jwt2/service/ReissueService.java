@@ -50,10 +50,21 @@ public class ReissueService{
 
     // 새로운 Access 토큰 생성
     String newAccess = jwtUtil.createJwt("access", username, role, 600000L);
+    String newrefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
 
     // Response에 새로운 Access 토큰 추가
     response.setHeader("access", newAccess);
+    response.addCookie(createCookie("refresh", newrefresh));
 
     return new ResponseEntity<>(HttpStatus.OK);
 }
+
+    private Cookie createCookie(String key, String value) {
+
+        Cookie cookie = new Cookie(key, value);
+        cookie.setMaxAge(24*60*60);
+        cookie.setHttpOnly(true);
+
+        return cookie;
+    }
 }
