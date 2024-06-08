@@ -5,15 +5,20 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.example.jwt2.Entity.RefreshEntity;
 import org.example.jwt2.jwt.JwtUtil;
+import org.example.jwt2.repository.RefreshRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+
+import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
 public class ReissueService{
     private final JwtUtil jwtUtil;
+    private final RefreshRepository refreshRepository;
 
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
       // Refresh 토큰을 쿠키에서 가져오기
@@ -41,7 +46,13 @@ public class ReissueService{
     // 토큰의 카테고리가 "refresh"인지 확인
     String category = jwtUtil.getCategory(refresh);
     if (!category.equals("refresh")) {
-        return new ResponseEntity<>("refresh 토큰이 아닙니다.", HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>("유효하지 않은 refresh 토큰", HttpStatus.BAD_REQUEST);
+    }
+
+    Boolean isExist = refreshRepository.existsByRefresh(refresh);
+
+    if (!isExist) {
+        return new ResponseEntity<>("유효하지 않은 refresh 토큰", HttpStatus.BAD_REQUEST);
     }
 
     // 토큰에서 사용자 이름과 역할을 추출
@@ -56,8 +67,25 @@ public class ReissueService{
     response.setHeader("access", newAccess);
     response.addCookie(createCookie("refresh", newrefresh));
 
+    // DB에 기존 refresh를 지우고 다시 발급
+    refreshRepository.deleteByRefresh(refresh);
+    addRefreshEntity(username,refresh,86400000L);
+
+
     return new ResponseEntity<>(HttpStatus.OK);
 }
+
+    private void addRefreshEntity(String username, String refresh, long expiredtime) {
+        Date date = new Date(System.currentTimeMillis() + expiredtime);
+        RefreshEntity refreshEntity = new RefreshEntity();
+
+        refreshEntity.setUsername(username);
+        refreshEntity.setRefresh(refresh);
+        refreshEntity.setExpiration(date.toString());
+
+        refreshRepository.save(refreshEntity);
+    }
+
 
     private Cookie createCookie(String key, String value) {
 
