@@ -19,7 +19,7 @@ import java.io.PrintWriter;
 @RequiredArgsConstructor
 public class JwtFilter extends OncePerRequestFilter {
 
-    private final JwtUtil jwtUtil;
+    private final JwtUtil JwtUtil;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -35,7 +35,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
         // 토큰 만료 여부 확인, 만료시 다음 필터로 넘기지 않음
         try {
-            jwtUtil.isExpired(accessToken);
+            JwtUtil.isExpired(accessToken);
         } catch (ExpiredJwtException e) {
 
             PrintWriter writer = response.getWriter();
@@ -48,7 +48,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
 
         // 토큰이 access인지 확인 (발급시 페이로드에 명시)
-        String tokencategory = jwtUtil.getCategory(accessToken);
+        String tokencategory = JwtUtil.getCategory(accessToken);
 
         if(!tokencategory.equals("access")) {
 
@@ -59,8 +59,8 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        String username = jwtUtil.getUsername(accessToken);
-        String role = jwtUtil.getRole(accessToken);
+        String username = JwtUtil.getUsername(accessToken);
+        String role = JwtUtil.getRole(accessToken);
 
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(username);

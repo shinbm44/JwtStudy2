@@ -32,7 +32,7 @@ import java.util.Iterator;
 public class LoginFilter extends UsernamePasswordAuthenticationFilter {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
+    private final JwtUtil JwtUtil;
     private final RefreshRepository refreshRepository;
 
 
@@ -74,8 +74,10 @@ public class LoginFilter extends UsernamePasswordAuthenticationFilter {
         String role = auth.getAuthority();
 
         // 토큰 생성
-        String access = jwtUtil.createJwt("access", username, role, 600000L);
-        String refresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
+        String access = JwtUtil.createJwt("access", username, role, 600000L);
+        String refresh = JwtUtil.createJwt("refresh", username, role, 86400000L);
+        log.info("access={}", access);
+        log.info(" 액세스 토큰 확인 절차 ");
 
         //Refresh 토큰 저장
         addRefreshEntity(username, refresh, 86400000L);

@@ -1,6 +1,7 @@
 package org.example.jwt2.config;
 
 import lombok.RequiredArgsConstructor;
+import org.example.jwt2.jwt.CustomLogoutFilter;
 import org.example.jwt2.jwt.JwtFilter;
 import org.example.jwt2.jwt.JwtUtil;
 import org.example.jwt2.jwt.LoginFilter;
@@ -15,6 +16,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.authentication.logout.LogoutFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -22,7 +24,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final AuthenticationConfiguration authenticationConfiguration;
-    private final JwtUtil jwtUtil;
+    private final JwtUtil JwtUtil;
     private final RefreshRepository refreshRepository;
 
     @Bean
@@ -38,7 +40,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http, JwtUtil jwtUtil) throws Exception {
 
 
         //csrf disable
@@ -62,10 +64,11 @@ public class SecurityConfig {
                         .anyRequest().authenticated());
 
         http
-                .addFilterBefore(new JwtFilter(jwtUtil), LoginFilter.class);
+                .addFilterBefore(new JwtFilter(JwtUtil), LoginFilter.class);
         http
-                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), jwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class);
-
+                .addFilterAt(new LoginFilter(authenticationManager(authenticationConfiguration), JwtUtil, refreshRepository), UsernamePasswordAuthenticationFilter.class);
+        http
+                .addFilterBefore(new CustomLogoutFilter(JwtUtil, refreshRepository), LogoutFilter.class);
 
 
 

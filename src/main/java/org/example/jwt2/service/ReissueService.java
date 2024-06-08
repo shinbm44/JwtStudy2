@@ -17,7 +17,7 @@ import java.util.Date;
 @Service
 @RequiredArgsConstructor
 public class ReissueService{
-    private final JwtUtil jwtUtil;
+    private final JwtUtil JwtUtil;
     private final RefreshRepository refreshRepository;
 
     public ResponseEntity<?> reissue(HttpServletRequest request, HttpServletResponse response) {
@@ -38,13 +38,13 @@ public class ReissueService{
 
     // Refresh 토큰이 만료되었는지 확인
     try {
-        jwtUtil.isExpired(refresh);
+        JwtUtil.isExpired(refresh);
     } catch (ExpiredJwtException e) {
         return new ResponseEntity<>("refresh 토큰이 만료되었습니다.", HttpStatus.BAD_REQUEST);
     }
 
     // 토큰의 카테고리가 "refresh"인지 확인
-    String category = jwtUtil.getCategory(refresh);
+    String category = JwtUtil.getCategory(refresh);
     if (!category.equals("refresh")) {
         return new ResponseEntity<>("유효하지 않은 refresh 토큰", HttpStatus.BAD_REQUEST);
     }
@@ -56,12 +56,12 @@ public class ReissueService{
     }
 
     // 토큰에서 사용자 이름과 역할을 추출
-    String username = jwtUtil.getUsername(refresh);
-    String role = jwtUtil.getRole(refresh);
+    String username = JwtUtil.getUsername(refresh);
+    String role = JwtUtil.getRole(refresh);
 
     // 새로운 Access 토큰 생성
-    String newAccess = jwtUtil.createJwt("access", username, role, 600000L);
-    String newrefresh = jwtUtil.createJwt("refresh", username, role, 86400000L);
+    String newAccess = JwtUtil.createJwt("access", username, role, 600000L);
+    String newrefresh = JwtUtil.createJwt("refresh", username, role, 86400000L);
 
     // Response에 새로운 Access 토큰 추가
     response.setHeader("access", newAccess);
